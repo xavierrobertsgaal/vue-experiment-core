@@ -99,9 +99,9 @@ const initLoading = computed(() => {
 
 <template>
 
-  <div fixed inset-0 bg-gray-600 relative>
+  <div fixed inset-0 bg-paper relative>
     <div flex-center h-100vh >
-      <MainContent capture-errors bg-white border-4 fixed-width fixed-height>
+      <MainContent capture-errors bg-paper rounded-2xl fixed-width fixed-height>
         <Experiment />
       </MainContent>
     </div>

@@ -45,10 +45,10 @@ provide('devTools', devTools)
     <!-- Produces the outline off this tab so it never has to traverse/reload (ADR 0003). -->
     <OutlineWorkerFrame />
   </div>
-  <div v-else fixed inset-0 bg-gray-600 >
+  <div v-else fixed inset-0 bg-paper >
     <NavBar mb-2/>
     <div flex-center min-h-80vh>
-      <MainContent bg-white border-4 fixed-width fixed-height>
+      <MainContent bg-paper rounded-2xl fixed-width fixed-height>
         <!-- Render the actual page content (the route's component), not a hardcoded <Experiment />:
              the outline worker loads non-/dev routes (e.g. /demo/<slug>) here too and must traverse
              that page's timeline. On /dev the slot is <Experiment />, so preview is unchanged. -->

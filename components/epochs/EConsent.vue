@@ -51,6 +51,17 @@ const abortExperiment = async (reason: 'TIMEOUT' | 'ABORTED') => {
 
 const slots = useSlots()
 
+// Require the participant to scroll to the end of the consent before agreeing.
+const consentBox = ref<HTMLElement>()
+const scrolledToEnd = ref(false)
+const checkScroll = () => {
+  const el = consentBox.value
+  if (!el) return
+  scrolledToEnd.value = el.scrollHeight - el.scrollTop - el.clientHeight < 8
+}
+// if the form is short enough not to scroll, enable immediately
+onMounted(() => nextTick(checkScroll))
+
 </script>
 
 <template>
@@ -105,7 +116,7 @@ const slots = useSlots()
           for more than {{ totalTimeoutSeconds }} seconds.
         </div> -->
     
-        <div class="p-6 border-2 text-sm overflow-y-auto h-100 ">
+        <div ref="consentBox" class="p-6 rounded text-sm overflow-y-auto h-100" style="border: 1px solid #262626" @scroll="checkScroll">
           <div w-110 mx-auto mt20 v-if="!slots.default">
             If you're reading this, you should either put the correct
             consent form in Consent.vue or message the researcher telling them
@@ -116,8 +127,12 @@ const slots = useSlots()
 
         <h4 class="text-lg font-semibold mt-2 mb-2">Do you understand and consent to these terms?</h4>
 
+        <p v-if="!scrolledToEnd" class="text-sm italic opacity-60 mb-2">
+          Please scroll to the bottom of the form to continue.
+        </p>
+
         <div flex="~ row gap-4">
-          <PButton value="agree" btn-primary @click="done">
+          <PButton value="agree" btn-primary :disabled="!scrolledToEnd" @click="done">
             <span i-mdi-check />
             I agree
           </PButton>

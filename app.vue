@@ -43,7 +43,7 @@ useErrorHandler() // initialize
   font-family: helvetica, arial, sans-serif;
   font-size: 16px;
   color: #101010;
-  background-color: #ffffff;
+  background-color: #f2f0fa;
 }
 
 button {
