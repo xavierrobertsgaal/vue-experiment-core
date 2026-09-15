@@ -169,8 +169,11 @@ export const getDBPath = (mode: DataMode, sessionId: string, kind: keyof Session
 // }
 
 
+// Cycle detection is path-based: an object counts as "seen" only while it is an ancestor of the value
+// being walked, so a payload that references the same object twice (a shared, non-circular reference)
+// is accepted and only true cycles throw.
 export function toSafeData(input: unknown): SafeData {
-  const seen = new WeakSet<object>();
+  const ancestors = new WeakSet<object>();
 
   const walk = (x: any): SafeData => {
     // unwrap refs and vue proxies
@@ -192,23 +195,26 @@ export function toSafeData(input: unknown): SafeData {
 
     // objects
     if (typeof x === "object") {
-      if (seen.has(x)) throw new TypeError("ensureSafeData: circular structure");
-      seen.add(x);
-
-      // strip classes
+      if (ancestors.has(x)) throw new TypeError("ensureSafeData: circular structure");
       if (x instanceof Date) return x.toISOString()
-      if (x instanceof Set) return Array.from(x, walk);
-      if (x instanceof Map) return Array.from(x.entries(), ([k, v]) => [walk(k), walk(v)]) as any;
+      ancestors.add(x);
+      try {
+        // strip classes
+        if (x instanceof Set) return Array.from(x, walk);
+        if (x instanceof Map) return Array.from(x.entries(), ([k, v]) => [walk(k), walk(v)]) as any;
 
-      if (Array.isArray(x)) return x.map(walk);
+        if (Array.isArray(x)) return x.map(walk);
 
-      // plain-ish object: keep only enumerable string keys, drop undefined like JSON does
-      const out: SafeDataObject = {};
-      for (const [k, v] of Object.entries(x)) {
-        if (v === undefined) continue;
-        out[k] = walk(v);
+        // plain-ish object: keep only enumerable string keys, drop undefined like JSON does
+        const out: SafeDataObject = {};
+        for (const [k, v] of Object.entries(x)) {
+          if (v === undefined) continue;
+          out[k] = walk(v);
+        }
+        return out;
+      } finally {
+        ancestors.delete(x);
       }
-      return out;
     }
 
     throw new TypeError(`ensureSafeData: cannot convert ${x} to SafeData`);
